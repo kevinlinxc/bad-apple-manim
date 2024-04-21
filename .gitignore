@@ -3,3 +3,12 @@
 **media**
 **.html
 **.js
+**.png
+**.bmp
+**.svg
+**.DS_Store
+pypotrace/
+**.wav
+**.data.pt
+**logs**
+**.json
