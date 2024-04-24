@@ -1,47 +1,32 @@
+import manim
 from manim import *
-from manim_svg_animations import *
 
 
-VMobject.set_default(color=BLACK)
-
-
-class SceneExample(Scene):
+class BadApple(Scene):
     def construct(self):
-        self.camera.background_color = WHITE
-        ax = Axes().add_coordinates()
+        ax = Axes(
+            x_range=[0, 960, 100],
+            y_range=[0, 720, 100]
+        ).add_coordinates()
         labels = ax.get_axis_labels("x", "y")
-        vg = VGroup(ax, labels)
-        parsed = HTMLParsedVMobject(vg, self)
         self.play(Write(VGroup(ax, labels)))
-        graph = ax.plot(
-            np.log,
-            x_range=[np.exp(-4), 7],
-            color=RED
-        )
-        vg.add(graph)
-        self.play(Create(graph))
-        riemann = ax.get_riemann_rectangles(
-            graph,
-            x_range=[1, 6],
-            dx=1
-        )
-        vg.add(riemann)
-        self.play(Write(riemann))
-        dx = ValueTracker(1)
-        riemann.add_updater(
-            lambda m: m.become(ax.get_riemann_rectangles(
-                graph,
-                x_range=[1, 6],
-                dx=dx.get_value()
-            ))
-        )
-        self.play(dx.animate.set_value(0.1))
-        self.wait()
-        riemann.clear_updaters()
-        self.play(FadeOut(vg))
-        banner = ManimBanner(dark_theme=False)
-        vg.remove(*vg)
-        vg.add(banner)
-        self.play(banner.create())
-        self.play(banner.expand())
-        parsed.finish()
+
+        svg_group = []
+        for i in range(6572):
+            svg_path = f"svgs_border_2/{i}.svg"  # Assuming SVG files are named as "0.svg", "1.svg", etc. in the "svg_files" directory
+            svg = (SVGMobject(svg_path, fill_color=None, stroke_color=manim.DARK_BLUE,stroke_width=2)
+                   .scale_to_fit_height(ax.coords_to_point(960, 720)[1])).scale(2.1)
+            # remove the rect around the svg, which is in every svg
+            svg.move_to(ax.coords_to_point(960/2+25, 720/2+45))  # Offset by 50 in x and y
+            svg = svg[:-1]
+
+            svg_group.append(svg)
+
+        self.play(Create(svg_group[0]))
+        for index, svg in enumerate(svg_group):
+            if index == 0:
+                continue
+            self.remove(svg_group[index-1])
+            self.add(svg)
+            self.wait(1/30)
+            self.remove(svg)
