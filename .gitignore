@@ -12,3 +12,8 @@ pypotrace/
 **.data.pt
 **logs**
 **.json
+**__pycache__**
+**.mp4
+**.mp3
+**.m4a
+**circle-packing**
