@@ -42,11 +42,14 @@ class VideoMobject(ImageMobject):
         self._id = id(self)
         self.status = VideoStatus()
         self.status.videoObject = cv2.VideoCapture(filename)
+        self.frame = None
+        self.magic_counter = 1
 
         self.status.videoObject.set(cv2.CAP_PROP_POS_FRAMES, 1)
         ret, frame = self.status.videoObject.read()
         if ret:
             frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            self.frame = frame
             img = Image.fromarray(frame)
 
             if imageops != None:
@@ -58,33 +61,8 @@ class VideoMobject(ImageMobject):
                                             [0, 0, 0, 255]
                                             ]))
         super().__init__(img, **kwargs)
-        if ret:
-            self.add_updater(self.videoUpdater)
 
-    def videoUpdater(self, mobj, dt):
-        if dt == 0:
-            return
-        status = self.status
-        status.time += 1000 * dt
-        self.status.videoObject.set(cv2.CAP_PROP_POS_MSEC, status.time)
-        ret, frame = self.status.videoObject.read()
-        if (ret == False) and self.loop:
-            status.time = 0
-            self.status.videoObject.set(cv2.CAP_PROP_POS_MSEC, status.time)
-            ret, frame = self.status.videoObject.read()
-        if ret:
-            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            img = Image.fromarray(frame)
 
-            if mobj.imageops != None:
-                img = mobj.imageops(img)
-            mobj.pixel_array = change_to_rgba_array(
-                np.asarray(img), mobj.pixel_array_dtype
-            )
-
-    def clear_updaters(self, recursive: bool = True):
-        super().clear_updaters(recursive)
-        self.add_updater(self.videoUpdater)
 
 
 
@@ -99,10 +77,37 @@ class MyScene(ThreeDScene):
         self.play(Write(VGroup(ax, labels)))
         # math_level_text = Text("Kindergarten", font_size=24).to_edge(DL).set_color(YELLOW)
         # start playing video
+        # invisible_square = Square().set_fill(opacity=0).set_stroke(opacity=0)
+
         self.video1 = VideoMobject(
             filename="BadApple1261CirclesThickFill.mp4",
             speed=1.0
         ).scale_to_fit_height(ax.coords_to_point(960, 720)[1]).scale(2.1)
+
+        def videoUpdater(mobj: VideoMobject, dt):
+            if dt == 0:
+                return
+            status = mobj.status
+            status.time = self.renderer.time
+            closest_frame = int(status.time * mobj.status.videoObject.get(cv2.CAP_PROP_FPS))
+            mobj.status.videoObject.set(cv2.CAP_PROP_POS_FRAMES, closest_frame)
+            ret, frame = mobj.status.videoObject.read()
+            if (ret == False) and mobj.loop:
+                status.time = 0
+                mobj.status.videoObject.set(cv2.CAP_PROP_POS_MSEC, status.time)
+                ret, frame = mobj.status.videoObject.read()
+            if ret:
+                frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+
+                img = Image.fromarray(frame)
+
+                if mobj.imageops != None:
+                    img = mobj.imageops(img)
+                mobj.pixel_array = change_to_rgba_array(
+                    np.asarray(img), mobj.pixel_array_dtype
+                )
+        self.video1.add_updater(videoUpdater)
+
         self.video1.move_to(ax.coords_to_point(960 / 2 + 25, 720 / 2 + 45))
         frame_count = Integer(number=0, color=YELLOW).move_to(RIGHT * 4.2 + UP * 2.5)
 
@@ -123,8 +128,7 @@ class MyScene(ThreeDScene):
         self.wait(27)
 
         # make video follow a curve
-        self.play(ScaleInPlace(self.video1, 0.3), run_time=1)
-        self.play(self.video1.animate.move_to(ORIGIN + UP), run_time=1)
+        self.play(self.video1.animate.scale(0.3).move_to(ORIGIN + UP), run_time=1)
 
 
         # make a graph
@@ -194,6 +198,7 @@ class MyScene(ThreeDScene):
         self.video1.add_updater(video_updater)
         self.play(x.animate.set_value(10), run_time=3, rate_func=rush_into)
         self.video1.clear_updaters()
+        self.video1.add_updater(videoUpdater)
         self.video1.set_x(100)
         self.video1.set_y(300)
         x.set_value(1000)
@@ -226,9 +231,6 @@ class MyScene(ThreeDScene):
 
         self.play(self.video1.animate.scale(3), run_time=1.5)
 
-        # show center of mass of the video
-        # load centers of mass from centerofmasses.json
-
         # after
         with open("centerofmasses.json", "r") as f:
             centerofmasses = json.load(f)
@@ -241,12 +243,25 @@ class MyScene(ThreeDScene):
         max_y = top_right[1]
         com_dot = Dot().set_color(YELLOW)
         
+        # after
+        with open("centerofmasses.json", "r") as f:
+            centerofmasses = json.load(f)
+        # create text and dot to show center of mass
+        top_right = self.video1.get_corner(UR)
+        bottom_left = self.video1.get_corner(DL)
+        min_x = bottom_left[0]
+        max_x = top_right[0]
+        min_y = bottom_left[1]
+        max_y = top_right[1]
+        com_dot = Dot().set_color(YELLOW)
+
         def com_updater(m):
             frame = int(self.video1.status.videoObject.get(cv2.CAP_PROP_POS_FRAMES)) - 30
             cx = centerofmasses[str(frame)][0]
             cy = centerofmasses[str(frame)][1]
             # convert cx and cy to coordinates according to the video's coordinates
             # get origin of the video
+        
         
             # convert cx and cy to coordinates in the video's coordinate system
             x_normalized = cx / 960
@@ -269,8 +284,5 @@ class MyScene(ThreeDScene):
         com_dot.add_updater(com_updater)
         self.play(Write(com_dot))
         self.add(com_text)
-        # move the dot to the center of mass
-        # create updater to move the dot and update the text based on the current frame of the video
-        
         
         self.wait(50)
