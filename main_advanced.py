@@ -1,9 +1,8 @@
-import manim
 from manim import *
 import cv2
 from dataclasses import dataclass
 from PIL import Image, ImageOps
-import random
+import json
 
 
 @dataclass
@@ -66,7 +65,7 @@ class VideoMobject(ImageMobject):
         if dt == 0:
             return
         status = self.status
-        status.time += 1000 * dt * mobj.speed
+        status.time += 1000 * dt
         self.status.videoObject.set(cv2.CAP_PROP_POS_MSEC, status.time)
         ret, frame = self.status.videoObject.read()
         if (ret == False) and self.loop:
@@ -83,18 +82,25 @@ class VideoMobject(ImageMobject):
                 np.asarray(img), mobj.pixel_array_dtype
             )
 
+    def clear_updaters(self, recursive: bool = True):
+        super().clear_updaters(recursive)
+        self.add_updater(self.videoUpdater)
+
+
 
 class MyScene(ThreeDScene):
     def construct(self):
+        # create axes
         ax = Axes(
             x_range=[0, 960, 100],
             y_range=[0, 720, 100]
         ).add_coordinates()
         labels = ax.get_axis_labels("x", "y")
         self.play(Write(VGroup(ax, labels)))
-
+        # math_level_text = Text("Kindergarten", font_size=24).to_edge(DL).set_color(YELLOW)
+        # start playing video
         self.video1 = VideoMobject(
-            filename="BadApple1261Circles.mp4",
+            filename="BadApple1261CirclesThickFill.mp4",
             speed=1.0
         ).scale_to_fit_height(ax.coords_to_point(960, 720)[1]).scale(2.1)
         self.video1.move_to(ax.coords_to_point(960 / 2 + 25, 720 / 2 + 45))
@@ -107,31 +113,19 @@ class MyScene(ThreeDScene):
         frame_count.add_updater(update_frame_text)
 
         v1 = Group(self.video1, ax, labels, frame_count)
-
         self.add(v1)
         self.wait(440 / 30)
+
+        # hide axes and show some interesting visuals
         self.play(Unwrite(VGroup(ax, labels), run_time=0.5))
         self.wait(0.5)
-        # pivot the camera around
-        # self.play(self.camera.theta_tracker.animate.set_value(20 * DEGREES), run_time=3
-        #           )
-        # self.play(
-        #     self.camera.theta_tracker.animate.set_value((-90 + 10) * DEGREES), run_time=3
-        # )
-        # self.play(
-        #     self.camera.theta_tracker.animate.set_value(2), run_time=3
-        # )
-        # self.play(
-        #     self.camera.gamma_tracker.animate.set_value(0 * DEGREES),
-        #     self.camera.phi_tracker.animate.set_value(0 * DEGREES),
-        #     self.camera.theta_tracker.animate.set_value(-90 * DEGREES),
-        #     self.camera.zoom_tracker.animate.set_value(1.3),
-        #     self.video1.animate(rate_func=linear).move_to(ax.coords_to_point(960 / 2, 720 / 2 + 10)),
-        #     run_time=3
-        # )
+
         self.wait(27)
-        # shrink the video and move it to the origin
-        self.play(self.video1.animate.scale(0.3).move_to(ORIGIN + UP))
+
+        # make video follow a curve
+        self.play(ScaleInPlace(self.video1, 0.3), run_time=1)
+        self.play(self.video1.animate.move_to(ORIGIN + UP), run_time=1)
+
 
         # make a graph
         ax = Axes(
@@ -143,7 +137,6 @@ class MyScene(ThreeDScene):
 
         ).to_edge(DL + RIGHT + UP, buff=1).scale(0.7)
 
-        # add title "time spent on this stupid video"
         title = Text("Time spent on this stupid video", font_size=24).next_to(ax, UP)
         func = ax.plot(
             lambda x: 1 / 180 * x ** 2 * (x - 3) ** 2 * (x - 8) ** 2, x_range=[0, 10], color=BLUE
@@ -170,33 +163,114 @@ class MyScene(ThreeDScene):
         self.play(Write(VGroup(ax, title)))
         self.play(Create(func))
         self.play(Create(dot1), Create(dot2), Create(secant))
-        self.play(x.animate.set_value(0), dx.animate.set_value(0.001), run_time=4, rate_func=linear)
+        self.play(x.animate.set_value(0), dx.animate.set_value(0.001), run_time=2, rate_func=linear)
         # move video to be on the secant line and follow it
         self.play(self.video1.animate.move_to(ax.c2p(0, func.underlying_function(0))),
                   run_time=2
                   )
         # add updater so that the video follows the secant line
-        self.video1.add_updater(lambda m: m.move_to(ax.c2p(x.get_value(), func.underlying_function(x.get_value()))))
         # update rotation based on atan2(dy, dx)
-        self.last_rotation = 0
+        self.total_angle = 0
 
         def video_updater(m):
-            curr_x = x.get_value()
-            curr_dx = dx.get_value()
-            curr_y = func.underlying_function(curr_x)
-            curr_dy = func.underlying_function(curr_x + curr_dx) - curr_y
-            angle = np.arctan2(curr_dy, curr_dx)
-            m.rotate(angle - self.last_rotation)
-            self.last_rotation = angle
+            x1 = x.get_value()
+            x2 = x1 + dx.get_value()
+            y1 = func.underlying_function(x1)
+            y2 = func.underlying_function(x2)
+            point_1: np.ndarray = ax.c2p(x1, y1)
+            graph_x1, graph_y1 = point_1[0], point_1[1]
+            point_2 = ax.c2p(x2, y2)
+            graph_x2, graph_y2 = point_2[0], point_2[1]
+            angle = np.arctan2(graph_y2 - graph_y1, graph_x2 - graph_x1)
+
+            # angle_multiplier = 1 if self.video1.status.videoObject.get(cv2.CAP_PROP_POS_FRAMES) - 30 < 1996 else 1
+            # m.move_to(ax.c2p(x1, y1))
+            m.rotate((angle - self.total_angle), about_point=m.get_center())
+            self.total_angle += (angle - self.total_angle)
+
+            m.move_to(ax.c2p(x1, y1) + (ax.c2p(x2, y2) - ax.c2p(x1, y1)) / 2)
             # add half the image's height to the axis perpendicular to the tangent point and move the image there
-            m.move_to(ax.c2p(curr_x, curr_y))
 
         self.video1.add_updater(video_updater)
-        self.play(x.animate.set_value(10), run_time=10, rate_func=linear)
-
-        self.play(Uncreate(VGroup(ax, title, func, dot1, dot2, secant)))
+        self.play(x.animate.set_value(10), run_time=3, rate_func=rush_into)
         self.video1.clear_updaters()
-        self.play(self.video1.animate.move_to(ORIGIN + 3 * RIGHT),
-                  self.video1.animate.rotate(-PI / 2),
-                  run_time=2)
-        self.play(self.video1.animate.scale(3))
+        self.video1.set_x(100)
+        self.video1.set_y(300)
+        x.set_value(1000)
+        # axes should disappear into bottom left to create sense of motion
+        self.play(VGroup(ax, title, func, dot1, dot2, secant).animate.move_to(ax.c2p(-100, -4000)), run_time=0.5)
+        # self.play(Uncreate(VGroup(ax, title, func, dot1, dot2, secant)), run_time=0.5)
+        # land after jumping into the air
+        # ascent
+        self.play(self.video1.animate.move_to(ORIGIN + RIGHT * 2),
+                  run_time=2, rate_func=rush_from)
+        self.play(self.video1.animate.move_to(ORIGIN + LEFT * 2), run_time = 1, rate_func=there_and_back)
+        self.play(self.video1.animate.move_to(ORIGIN + LEFT * 2), run_time=1, rate_func=smooth)
+
+        # apex
+        self.play(self.video1.animate.move_to(ORIGIN + LEFT * 1.5 + UP * 8), run_time=1, rate_func=smooth)
+        self.play(self.video1.animate.rotate(-2 * self.total_angle),  run_time=0.05,
+                  )
+        self.play(self.video1.animate.move_to(ORIGIN + RIGHT * 1.5 + UP * 8), run_time=0.25, rate_func=smooth)
+        self.play(self.video1.animate.move_to(ORIGIN + RIGHT * 2), run_time=1, rate_func=smooth)
+
+        # descent
+        self.play(self.video1.animate.move_to(ORIGIN + LEFT * 2), run_time=1.5, rate_func=there_and_back)
+        self.play(self.video1.animate.move_to(ORIGIN), run_time=1, rate_func=smooth)
+        self.play(self.video1.animate.move_to(ORIGIN + LEFT * 1 + UP * 20), run_time=1, rate_func=smooth)
+        self.play(self.video1.animate.move_to(ORIGIN + DOWN * 10), run_time=0.5)
+        
+        # back to origin
+        self.play(self.video1.animate.move_to(ORIGIN), run_time=0.5, rate_func=rush_from)
+        self.play(self.video1.animate.rotate(self.total_angle), run_time=0.5, rate_func=lingering)
+
+        self.play(self.video1.animate.scale(3), run_time=1.5)
+
+        # show center of mass of the video
+        # load centers of mass from centerofmasses.json
+
+        # after
+        with open("centerofmasses.json", "r") as f:
+            centerofmasses = json.load(f)
+        # create text and dot to show center of mass
+        top_right = self.video1.get_corner(UR)
+        bottom_left = self.video1.get_corner(DL)
+        min_x = bottom_left[0]
+        max_x = top_right[0]
+        min_y = bottom_left[1]
+        max_y = top_right[1]
+        com_dot = Dot().set_color(YELLOW)
+        
+        def com_updater(m):
+            frame = int(self.video1.status.videoObject.get(cv2.CAP_PROP_POS_FRAMES)) - 30
+            cx = centerofmasses[str(frame)][0]
+            cy = centerofmasses[str(frame)][1]
+            # convert cx and cy to coordinates according to the video's coordinates
+            # get origin of the video
+        
+            # convert cx and cy to coordinates in the video's coordinate system
+            x_normalized = cx / 960
+            y_normalized = (720 - cy) / 720
+            cx = x_normalized * (max_x - min_x) + min_x
+            cy = y_normalized * (max_y - min_y) + min_y
+            m.move_to([cx, cy, 0])
+        
+        def update_com_text():
+            frame = int(self.video1.status.videoObject.get(cv2.CAP_PROP_POS_FRAMES)) - 30
+            cx = centerofmasses[str(frame)][0]
+            cy = centerofmasses[str(frame)][1]
+            return Text(f"Center of mass: {cx:.1f} {cy:.1f}", font_size=24).to_edge(DL).set_color(YELLOW)
+        
+        com_text = always_redraw(
+            update_com_text
+        )
+        
+        # # add updater to scene
+        com_dot.add_updater(com_updater)
+        self.play(Write(com_dot))
+        self.add(com_text)
+        # move the dot to the center of mass
+        # create updater to move the dot and update the text based on the current frame of the video
+        
+        
+        self.wait(50)
