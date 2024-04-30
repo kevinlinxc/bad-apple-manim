@@ -1,5 +1,7 @@
 # bad-apple-manim
 
+Recreating Bad Apple in the style of a 3Blue1Brown video.
+
 ## Making the video:
 `video_to_svg.ipynb` does the following:
 - Uses OpenCV to convert the original Bad Apple video into a series of PNG files.
@@ -7,7 +9,18 @@
 - Uses potrace (not `pypotrace`, the Python library was a nightmare) to convert the bitmaps into SVGs
 - Adds a rectangle around each SVG frame to fix Manim's auto-scaling
 
-Then, `main.py` uses [Manim](https://github.com/ManimCommunity/manim) (3b1b's animation library) to render the SVGs into a video. The command to render is `manim -pqh main.py BadApple`
+Then, `based_video` uses [Manim](https://github.com/ManimCommunity/manim) (3b1b's animation library) to render the SVGs into a video. 
+
+The command to render is `manim -pqh base_video.py BadApple1261CirclesThickFillUnfillCentered --disable_caching`.
+
+This renders a preliminary video, to save time with processing for the greater video which has other effects.
+
+The other video is rendered from `main_advanced.py`, using `manim -pqh main_advanced.py MyScene`, this is the one with all the mathematical effects like the 
+differentiation, integration, fourier series, and vector fields.
+
+Some other files:
+-`center_of_masses.ipynb`: used to pre-compute the center of masses of every frame to use in the main video
+-`fourier_series.ipynb`: used to test the Fourier Series using the coordinate system of the video
 
 
 ## Making the audio:
