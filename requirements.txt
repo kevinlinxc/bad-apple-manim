@@ -1,4 +1,4 @@
 manim
 pypotrace # pain in the ass to install
-opencv-python
+opencv-contrib-python
 matplotlib
