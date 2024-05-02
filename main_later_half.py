@@ -54,8 +54,10 @@ class MyScene(ThreeDScene):
         self.wait((frame_number - current_frame) / 30)
 
     def construct(self):
-        self.video1 = VideoMobject("videos/BadApple1261CirclesThickFillUnfillCentered.mp4", offset_frames=3340)
-        self.video1.move_to(ORIGIN).scale_to_fit_height(3.09375*2)
+        # self.video1 = VideoMobject("videos/BadApple1261CirclesThickFillUnfillCentered.mp4", offset_frames=3340)
+        self.video1 = VideoMobject("videos/BadApple1261CirclesThickFillUnfillCentered.mp4", offset_frames=0)
+
+        self.video1.move_to(ORIGIN).scale_to_fit_height(3*1.6)
         self.add(self.video1)
         def frame_updater(mobj: VideoMobject, dt):
             """Update the video's frame every time the scene is rendered. Use self.renderer.time instead of dt
@@ -84,116 +86,126 @@ class MyScene(ThreeDScene):
                 )
         self.video1.add_updater(frame_updater)
 
-        with open("centerofmasses.json", "r") as f:
-            centerofmasses = json.load(f)
-        # create text and dot to show center of mass
-        top_right = self.video1.get_corner(UR)
-        bottom_left = self.video1.get_corner(DL)
-        min_x = bottom_left[0]
-        max_x = top_right[0]
-        min_y = bottom_left[1]
-        max_y = top_right[1]
-        com_dot = Dot().set_color(YELLOW)
+        # with open("centerofmasses.json", "r") as f:
+        #     centerofmasses = json.load(f)
+        # # create text and dot to show center of mass
+        # top_right = self.video1.get_corner(UR)
+        # bottom_left = self.video1.get_corner(DL)
+        # min_x = bottom_left[0]
+        # max_x = top_right[0]
+        # min_y = bottom_left[1]
+        # max_y = top_right[1]
+        # com_dot = Dot().set_color(YELLOW)
 
-        left_crop_percent = 0.12239583333333333
-        right_crop_percent = 0.8520833333333333
-        top_crop_percent = 0.028703703703703703 
-        bottom_crop_percent = 0.9981481481481481
-        def video_coordinate_to_scene(cx, cy):
-            x_length = max_x - min_x
-            y_length = max_y - min_y
-            video_x_min = min_x + left_crop_percent * x_length
-            video_x_max = min_x + right_crop_percent * x_length
-            video_y_min = min_y + top_crop_percent * y_length
-            video_y_max = min_y + bottom_crop_percent * y_length
-            x_normalized = cx / 960 * (video_x_max - video_x_min) + video_x_min
-            y_normalized = (720 - cy) / 720 * (video_y_max - video_y_min) + video_y_min
-            return x_normalized, y_normalized
+        # left_crop_percent = 0.12239583333333333
+        # right_crop_percent = 0.8520833333333333
+        # top_crop_percent = 0.028703703703703703 
+        # bottom_crop_percent = 0.9981481481481481
+        # def video_coordinate_to_scene(cx, cy):
+        #     x_length = max_x - min_x
+        #     y_length = max_y - min_y
+        #     video_x_min = min_x + left_crop_percent * x_length
+        #     video_x_max = min_x + right_crop_percent * x_length
+        #     video_y_min = min_y + top_crop_percent * y_length
+        #     video_y_max = min_y + bottom_crop_percent * y_length
+        #     x_normalized = cx / 960 * (video_x_max - video_x_min) + video_x_min
+        #     y_normalized = (720 - cy) / 720 * (video_y_max - video_y_min) + video_y_min
+        #     return x_normalized, y_normalized
         
-        def com_updater(m):
-            frame = int(self.video1.status.videoObject.get(cv2.CAP_PROP_POS_FRAMES)) - 30
-            cx = centerofmasses[str(frame)][0]
-            cy = centerofmasses[str(frame)][1]
-            cx, cy = video_coordinate_to_scene(cx, cy)
-            m.move_to([cx, cy, 0])
+        # def com_updater(m):
+        #     frame = int(self.video1.status.videoObject.get(cv2.CAP_PROP_POS_FRAMES)) - 30
+        #     cx = centerofmasses[str(frame)][0]
+        #     cy = centerofmasses[str(frame)][1]
+        #     cx, cy = video_coordinate_to_scene(cx, cy)
+        #     m.move_to([cx, cy, 0])
         
-        def update_com_text():
-            frame = int(self.video1.status.videoObject.get(cv2.CAP_PROP_POS_FRAMES)) - 30
-            cx = centerofmasses[str(frame)][0]
-            cy = centerofmasses[str(frame)][1]
-            return Text(f"Center of mass: {cx:.1f} {cy:.1f}", font_size=24).to_edge(DOWN).set_color(YELLOW)
+        # def update_com_text():
+        #     frame = int(self.video1.status.videoObject.get(cv2.CAP_PROP_POS_FRAMES)) - 30
+        #     cx = centerofmasses[str(frame)][0]
+        #     cy = centerofmasses[str(frame)][1]
+        #     return Text(f"Center of mass: {cx:.1f} {cy:.1f}", font_size=24).to_edge(DOWN).set_color(YELLOW)
         
-        com_text = always_redraw(
-            update_com_text
-        )
+        # com_text = always_redraw(
+        #     update_com_text
+        # )
         
-        # # add updater to scene
-        com_dot.add_updater(com_updater)
-        self.play(Write(com_dot))
-        self.add(com_text)
-        self.wait_until_frame(4200-30)
-        self.play(Uncreate(com_text), Uncreate(com_dot), run_time=1)
+        # # # add updater to scene
+        # com_dot.add_updater(com_updater)
+        # self.play(Write(com_dot))
+        # self.add(com_text)
+        # self.wait_until_frame(4200-60)
+        # self.play(Uncreate(com_text), Uncreate(com_dot), run_time=1)
 
         # grow the video
-        self.play(self.video1.animate.scale_to_fit_height(8.2).move_to(ORIGIN + UP *0.125))
+        self.play(self.video1.animate.scale_to_fit_height(8).move_to(ORIGIN))
 
-        # LAST SECTION: OPTICAL FLOW
+        # LAST SECTION: ELECTRIC FIELD VECTORS
         # print bounds of the video
         down_left = self.video1.get_corner(DL)
         min_x, min_y = down_left[0], down_left[1]
         top_right = self.video1.get_corner(UR)
         max_x, max_y = top_right[0], top_right[1]
+
         # adjust min_x and max_x because the video is 12.763466042154567 cropped in from the right and left
-        true_min_x = min_x + 0.12239583333333333 * (max_x - min_x)
-        true_max_x = min_x + 0.8520833333333333 * (max_x - min_x)
+        # add dot at -6.5, 3.5
 
         def get_vector_field():
-            new_frame = self.video1.frame
-            old_frame = self.video1.last_frame
-            # flow = cv2.optflow.calcOpticalFlowSparseToDense(
-            #     self.video1.last_frame, frame, None
-            # )
-            new_frame = cv2.cvtColor(new_frame, cv2.COLOR_BGR2GRAY)
-            old_frame = cv2.cvtColor(old_frame, cv2.COLOR_BGR2GRAY)
-            flow = cv2.calcOpticalFlowFarneback(old_frame, new_frame, None, 0.5, 3, 15, 3, 5, 1.2, 0)
+            frame = self.video1.frame.copy()
+            # create a list of every non-black pixel
+            gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    
+            # Find coordinates where pixel values are not equal to zero
+            non_black_pixels = np.column_stack(np.where(gray_frame != 0))
+            # convert to floats
+            non_black_pixels = non_black_pixels.astype(np.float64)
+            # print(non_black_pixels)
+            # print(non_black_pixels[0])
+            # convert to scene coordinates
+            non_black_pixels[:, 1] = non_black_pixels[:, 1] / 1920 * (max_x - min_x) + min_x
+            non_black_pixels[:, 0] = (1080 - non_black_pixels[:, 0]) / 1080 * (max_y - min_y) + min_y
+            # print(non_black_pixels)
+            # print(non_black_pixels[0])
+
 
             def get_vector_at_position(pos):
+                
                 x = pos[0]
                 y = pos[1]
-                x = int((x - true_min_x) / (true_max_x - true_min_x) * 1920)
-                y = int((y - min_y) / (max_y - min_y) * 1080)
-                # find closest blue non-black pixel
-                for i in range(0, 1920):
-                    for j in range(0, 1080):
-                        if np.all(old_frame[j, i] != [0, 0, 0]):
-                            x = i
-                            y = j
-                            break
-                    if x != 0 or y != 0:
-                        break
-                # return np.array([-x, -y], dtype=np.float32)
+
+                # calculate the field contribution from every non-black pixel
+                field = np.array([0, 0], dtype=np.float64)
+                dx = -(x - non_black_pixels[:, 1])
+                dy = -(y - non_black_pixels[:, 0])
+
+                # Find indices where both dx and dy are not zero
+                valid_indices = np.where((dx != 0) | (dy != 0))
+
+                if len(valid_indices[0]) == 0:
+                    return field
+
+                dx = dx[valid_indices]
+                dy = dy[valid_indices]
+                distances = np.sqrt(dx ** 2 + dy ** 2)
+
+                field_contributions = 0.0001 * np.column_stack((dx, dy)) / distances[:, np.newaxis] ** 3
+
+                field += np.sum(field_contributions, axis=0)
+
+                # field /= np.linalg.norm(field)
+                # print(field)
+                # if x == 5 and y == 3.5:
+                #     import pdb; pdb.set_trace()
+                return field
                 
-                if x < 0 or x >= 1920 or y < 0 or y >= 1080:
-                    return np.array([0, 0])
-                end_x = x + flow[y, x, 0]
-                end_y = y + flow[y, x, 1]
-                if end_x < 0 or end_x >= 1920 or end_y < 0 or end_y >= 1080:
-                    return np.array([0, 0])
-                # only include arrows that go from non black to non black
-                if np.all(old_frame[y, x] != [0, 0, 0]) and np.all(new_frame[int(end_y), int(end_x)] != [0, 0, 0]):
-                    return np.array([end_x, end_y], dtype=np.float32)
-                else:
-                    return np.array([0, 0])
 
             field = ArrowVectorField(
                 lambda pos: get_vector_at_position(pos),
-
             )
             return field
         
         field = always_redraw(get_vector_field)
-        self.play(Create(field))
-        self.wait(30)
+        self.play(Create(field), run_time=0.2)
+        self.wait(15)
 
 
 

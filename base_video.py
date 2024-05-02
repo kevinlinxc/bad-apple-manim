@@ -3,7 +3,7 @@ from manim import *
 # make the video only, to be used in main_advanced.py
 
 
-class BadApple1261CirclesThickFillUnfillCentered(Scene):
+class BadApple1261CirclesThickFillCentered(Scene):
     def construct(self):
         svg_group = []
         for i in range(6572):
@@ -15,7 +15,7 @@ class BadApple1261CirclesThickFillUnfillCentered(Scene):
                 stroke_width = 5
             else:
                 stroke_width = 2
-            if 3329 <= i < 4200:
+            if 3329 <= i:
                 fill_color = manim.DARK_BLUE
             else:
                 fill_color = None

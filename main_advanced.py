@@ -81,7 +81,7 @@ class MyScene(ThreeDScene):
         # start playing video
 
         self.video1 = VideoMobject(
-            filename= str(Path("videos") / "BadApple1261CirclesThickFillUnfillCentered.mp4"),
+            filename= str(Path("videos") / "BadApple1261CirclesThickFillCentered.mp4"),
             speed=1.0
         ).scale_to_fit_height(ax.coords_to_point(960, 720)[1]).scale(2.1)
 
@@ -383,6 +383,62 @@ class MyScene(ThreeDScene):
         self.play(Write(com_dot))
         self.add(com_text)
 
+        self.wait_until_frame(4200-60)
+        self.play(Uncreate(com_text), Uncreate(com_dot), run_time=1)
 
-        self.wait(30)
+        # grow the video
+        self.play(self.video1.animate.scale_to_fit_height(8))
+
+        # LAST SECTION: ELECTRIC FIELD VECTORS
+        down_left = self.video1.get_corner(DL)
+        min_x, min_y = down_left[0], down_left[1]
+        top_right = self.video1.get_corner(UR)
+        max_x, max_y = top_right[0], top_right[1]
+
+        # adjust min_x and max_x because the video is 12.763466042154567 cropped in from the right and left
+        # add dot at -6.5, 3.5
+        def get_vector_field():
+            frame = self.video1.frame.copy()
+            # Find coordinates where pixel values are not equal to zero, these are to be treated as point charges
+            gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+            non_black_pixels = np.column_stack(np.where(gray_frame != 0))
+            non_black_pixels = non_black_pixels.astype(np.float64) # if I don't do this, it will be ints and the rounding ruins everything
+            non_black_pixels[:, 1] = non_black_pixels[:, 1] / 1920 * (max_x - min_x) + min_x
+            non_black_pixels[:, 0] = (1080 - non_black_pixels[:, 0]) / 1080 * (max_y - min_y) + min_y
+
+
+            def get_vector_at_position(pos):
+                
+                x = pos[0]
+                y = pos[1]
+
+                # calculate the field contribution from every non-black pixel
+                field = np.array([0, 0], dtype=np.float64)
+                dx = -(x - non_black_pixels[:, 1])
+                dy = -(y - non_black_pixels[:, 0])
+
+                # Find indices where both dx and dy are not zero, because ohterwise field would be infinite
+                valid_indices = np.where((dx != 0) | (dy != 0))
+
+                if len(valid_indices[0]) == 0:
+                    return field
+
+                dx = dx[valid_indices]
+                dy = dy[valid_indices]
+                distances = np.sqrt(dx ** 2 + dy ** 2)
+
+                field_contributions = 0.0001 * np.column_stack((dx, dy)) / distances[:, np.newaxis] ** 3
+
+                field += np.sum(field_contributions, axis=0)
+                return field
+                
+
+            field = ArrowVectorField(
+                lambda pos: get_vector_at_position(pos),
+            )
+            return field
+        
+        field = always_redraw(get_vector_field)
+        self.play(Create(field), run_time=0.2)
+        self.wait_until_frame(6572)
         
