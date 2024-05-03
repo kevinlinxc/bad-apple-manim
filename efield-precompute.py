@@ -4,10 +4,15 @@ import json
 e_fields = {}
 
 cap = cv2.VideoCapture("videos/BadApple1261CirclesThickFillCentered.mp4")
-max_x = 7.111111111111112                                                                                                                                    
-min_x = -7.111111111111112
-max_y = 4.0
-min_y = -4.0
+# max_x = 7.111111111111112                                                                                                                                    
+# min_x = -7.111111111111112
+# max_y = 4.0
+# min_y = -4.0
+
+min_x= -6.75555555555557                                                                                                                                   
+max_x=6.75555555555557
+min_y=-3.8
+max_y=3.8
 positions = set()
 
 for x in np.arange(-8.0, 8.0, 1.0):
@@ -32,10 +37,12 @@ while cap.isOpened():
         dx = -(x - non_black_pixels[:, 1])
         dy = -(y - non_black_pixels[:, 0])
 
+        # Find indices where both dx and dy are not zero
+        valid_indices = np.where((dx != 0) | (dy != 0))
+
+        dx = dx[valid_indices]
+        dy = dy[valid_indices]
         distances = np.sqrt(dx ** 2 + dy ** 2)
-        if np.any(distances < 0.01):
-            all_field[f"({x}, {y})"] = field.tolist()
-            continue
         field_contributions = 0.0001 * np.column_stack((dx, dy)) / distances[:, np.newaxis] ** 3
 
         field += np.sum(field_contributions, axis=0)
@@ -48,6 +55,6 @@ while cap.isOpened():
     if index % 10 == 0:
         print(index)
 cap.release()
-with open("e_fields.json", "w") as f:
+with open("e_fields_all.json", "w") as f:
     json.dump(e_fields, f)
         

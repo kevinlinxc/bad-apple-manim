@@ -110,20 +110,25 @@ class MyScene(ThreeDScene):
                 )
         self.video1.add_updater(frame_updater)
         # frame number tracker for debugging purposes
-        frame_count = Integer(number=0, color=YELLOW).move_to(LEFT * 4.2 + UP * 2.5)
+        frame_count = Integer(number=0, color=YELLOW).move_to(LEFT * 6.5 + UP * 3.5)
 
         def update_frame_text(mobject):
             mobject.set_value(int(self.video1.status.videoObject.get(cv2.CAP_PROP_POS_FRAMES)) - 30)
         frame_count.add_updater(update_frame_text)
-        self.wait(1)
-        v1 = Group(self.video1, frame_count)
+        kindergarten_status = Text("Level 1: Elementary School", font_size=15).to_edge(UL).set_color(YELLOW)
+        self.play(Write(kindergarten_status), run_time=1)
+        v1 = Group(self.video1)
         self.add(v1)
         self.wait(440 / 30)
 
         # hide axes for circle frames and trail frames
+        middle_school_status = Text("Level 2: Middle School", font_size=15).to_edge(UL).set_color(YELLOW)
+        self.play(ReplacementTransform(kindergarten_status, middle_school_status), run_time=1)
         self.wait(1)
 
-        self.wait(27)
+        self.wait(26)
+        high_school_status = Text("Level 3: High School", font_size=15).to_edge(UL).set_color(YELLOW)
+        self.play(ReplacementTransform(middle_school_status, high_school_status), run_time=1)
 
         # SECTION 2: DIFFERENTIAL CALCULUS
         # make video follow a curve
@@ -243,10 +248,11 @@ class MyScene(ThreeDScene):
         video_copy.z_index = -1
         self.add(video_copy)
         self.add(rect)
-
         self.play(FadeOut(rect), run_time=0.5)
         
-        self.play(self.video1.animate.move_to(ORIGIN + RIGHT * 5.5 + UP * 3 + OUT).scale_to_fit_width(3), run_time=1.5)
+        university_status = Text("Level 4: 1st Year Uni", font_size=15).to_edge(UL).set_color(YELLOW)
+        self.play(self.video1.animate.move_to(ORIGIN + RIGHT * 5.5 + UP * 3 + OUT).scale_to_fit_width(3),
+                  ReplacementTransform(high_school_status, university_status), run_time=1.5)
         self.play(video_copy.animate.move_to(ORIGIN + UP * 1.3).scale(0.75), run_time=1.5)
         # add axes centered at the video origin
         ax = Axes().add_coordinates().move_to(ORIGIN)
@@ -328,6 +334,7 @@ class MyScene(ThreeDScene):
         # print top right and bottom left corner
 
         # SECTION 5: center of masses
+        
         print("top right", self.video1.get_corner(UR))
         print("bottom left", self.video1.get_corner(DL))
         # values calculated in center_of_masses.ipynb
@@ -378,42 +385,49 @@ class MyScene(ThreeDScene):
         com_dot.add_updater(com_updater)
         self.play(Write(com_dot))
         self.add(com_text)
+        for_fun_status = Text("Level 5: 2nd Year Uni?", font_size=15).to_edge(UL).set_color(YELLOW)
+        self.play(ReplacementTransform(university_status, for_fun_status), run_time=1)
 
         self.wait_until_frame(4200-60)
         self.play(Uncreate(com_text), Uncreate(com_dot), run_time=1)
 
         # grow the video
-        self.play(self.video1.animate.scale_to_fit_height(8))
+        self.play(self.video1.animate.scale_to_fit_height(7.6))
+
 
         # LAST SECTION: ELECTRIC FIELD VECTORS
         down_left = self.video1.get_corner(DL)
         min_x, min_y = down_left[0], down_left[1]
         top_right = self.video1.get_corner(UR)
-        max_x, max_y = top_right[0], top_right[1]#
+        max_x, max_y = top_right[0], top_right[1]
+        print(f"min_x= {min_x}\nmax_x={max_x}\nmin_y={min_y}\nmax_y={max_y}")
+        university_status_2 = Text("Level 6: 3rd Year Uni", font_size=15).to_edge(UL).set_color(YELLOW)
+        self.play(ReplacementTransform(for_fun_status, university_status_2), run_time=0.5)
 
         # adjust min_x and max_x because the video is 12.763466042154567 cropped in from the right and left
         # add dot at -6.5, 3.5
-        # vector_data = json.load(open("e_fields.json"))
-        # def get_vector_field():
-        #     # vector fields are precomputed, see efield-precompute.py
-        #     frame_number = int(self.video1.status.videoObject.get(cv2.CAP_PROP_POS_FRAMES))
-        #     def get_vector_at_position(pos):
+        vector_data = json.load(open("e_fields.json"))
+        def get_vector_field():
+            # vector fields are precomputed, see efield-precompute.py
+            frame_number = int(self.video1.status.videoObject.get(cv2.CAP_PROP_POS_FRAMES))
+            def get_vector_at_position(pos):
                 
-        #         x = pos[0]
-        #         y = pos[1]
-        #         # calculate the field contribution from every non-black pixel
-        #         field = np.array(vector_data[str(frame_number)][f"({x}, {y})"])
-        #         return field
+                x = pos[0]
+                y = pos[1]
+                # calculate the field contribution from every non-black pixel
+                field = np.array(vector_data[str(frame_number)][f"({x}, {y})"])
+                return field
 
 
-        #     field = ArrowVectorField(
-        #         lambda pos: get_vector_at_position(pos),
-        #         x_range=[-7, 7, 1],
-        #         y_range=[-4, 4, 1],
-        #     )
-        #     return field
+            field = ArrowVectorField(
+                lambda pos: get_vector_at_position(pos),
+                x_range=[-7, 7, 1],
+                y_range=[-4, 4, 1],
+            )
+            return field
         
-        # field = always_redraw(get_vector_field)
-        # self.play(Create(field), run_time=0.2)
-        # self.wait_until_frame(6572)
+        field = always_redraw(get_vector_field)
+        self.play(Create(field), run_time=0.2)
+        self.wait_until_frame(6572)
+        self.play(FadeOut(VGroup(field, self.video1, university_status_2)), run_time=3)
         
