@@ -74,8 +74,7 @@ class MyScene(ThreeDScene):
         ax = Axes(
             x_range=[0, 960, 100],
             y_range=[0, 720, 100]
-        ).add_coordinates()
-        labels = ax.get_axis_labels("x", "y")
+        ).add_coordinates() # i don't use these but due to tech debt I still need it for the lines below
         # self.play(Write(VGroup(ax, labels)))
         # math_level_text = Text("Kindergarten", font_size=24).to_edge(DL).set_color(YELLOW)
         # start playing video
@@ -110,22 +109,19 @@ class MyScene(ThreeDScene):
                     np.asarray(img), mobj.pixel_array_dtype
                 )
         self.video1.add_updater(frame_updater)
-        self.video1.move_to(ax.coords_to_point(960 / 2 + 25, 720 / 2 + 45))
-
         # frame number tracker for debugging purposes
-        frame_count = Integer(number=0, color=YELLOW).move_to(RIGHT * 4.2 + UP * 2.5)
+        frame_count = Integer(number=0, color=YELLOW).move_to(LEFT * 4.2 + UP * 2.5)
 
         def update_frame_text(mobject):
             mobject.set_value(int(self.video1.status.videoObject.get(cv2.CAP_PROP_POS_FRAMES)) - 30)
         frame_count.add_updater(update_frame_text)
-        self.play(Create(VGroup(ax, labels)))
+        self.wait(1)
         v1 = Group(self.video1, frame_count)
         self.add(v1)
         self.wait(440 / 30)
 
         # hide axes for circle frames and trail frames
-        self.play(Unwrite(VGroup(ax, labels), run_time=0.5))
-        self.wait(0.5)
+        self.wait(1)
 
         self.wait(27)
 
@@ -393,52 +389,31 @@ class MyScene(ThreeDScene):
         down_left = self.video1.get_corner(DL)
         min_x, min_y = down_left[0], down_left[1]
         top_right = self.video1.get_corner(UR)
-        max_x, max_y = top_right[0], top_right[1]
+        max_x, max_y = top_right[0], top_right[1]#
 
         # adjust min_x and max_x because the video is 12.763466042154567 cropped in from the right and left
         # add dot at -6.5, 3.5
-        def get_vector_field():
-            frame = self.video1.frame.copy()
-            # Find coordinates where pixel values are not equal to zero, these are to be treated as point charges
-            gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-            non_black_pixels = np.column_stack(np.where(gray_frame != 0))
-            non_black_pixels = non_black_pixels.astype(np.float64) # if I don't do this, it will be ints and the rounding ruins everything
-            non_black_pixels[:, 1] = non_black_pixels[:, 1] / 1920 * (max_x - min_x) + min_x
-            non_black_pixels[:, 0] = (1080 - non_black_pixels[:, 0]) / 1080 * (max_y - min_y) + min_y
-
-
-            def get_vector_at_position(pos):
+        # vector_data = json.load(open("e_fields.json"))
+        # def get_vector_field():
+        #     # vector fields are precomputed, see efield-precompute.py
+        #     frame_number = int(self.video1.status.videoObject.get(cv2.CAP_PROP_POS_FRAMES))
+        #     def get_vector_at_position(pos):
                 
-                x = pos[0]
-                y = pos[1]
+        #         x = pos[0]
+        #         y = pos[1]
+        #         # calculate the field contribution from every non-black pixel
+        #         field = np.array(vector_data[str(frame_number)][f"({x}, {y})"])
+        #         return field
 
-                # calculate the field contribution from every non-black pixel
-                field = np.array([0, 0], dtype=np.float64)
-                dx = -(x - non_black_pixels[:, 1])
-                dy = -(y - non_black_pixels[:, 0])
 
-                # Find indices where both dx and dy are not zero, because ohterwise field would be infinite
-                valid_indices = np.where((dx != 0) | (dy != 0))
-
-                if len(valid_indices[0]) == 0:
-                    return field
-
-                dx = dx[valid_indices]
-                dy = dy[valid_indices]
-                distances = np.sqrt(dx ** 2 + dy ** 2)
-
-                field_contributions = 0.0001 * np.column_stack((dx, dy)) / distances[:, np.newaxis] ** 3
-
-                field += np.sum(field_contributions, axis=0)
-                return field
-                
-
-            field = ArrowVectorField(
-                lambda pos: get_vector_at_position(pos),
-            )
-            return field
+        #     field = ArrowVectorField(
+        #         lambda pos: get_vector_at_position(pos),
+        #         x_range=[-7, 7, 1],
+        #         y_range=[-4, 4, 1],
+        #     )
+        #     return field
         
-        field = always_redraw(get_vector_field)
-        self.play(Create(field), run_time=0.2)
-        self.wait_until_frame(6572)
+        # field = always_redraw(get_vector_field)
+        # self.play(Create(field), run_time=0.2)
+        # self.wait_until_frame(6572)
         
