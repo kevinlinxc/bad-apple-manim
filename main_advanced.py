@@ -115,19 +115,21 @@ class MyScene(ThreeDScene):
         def update_frame_text(mobject):
             mobject.set_value(int(self.video1.status.videoObject.get(cv2.CAP_PROP_POS_FRAMES)) - 30)
         frame_count.add_updater(update_frame_text)
-        kindergarten_status = Text("Level 1: Elementary School", font_size=15).to_edge(UL).set_color(YELLOW)
-        self.play(Write(kindergarten_status), run_time=1)
+        preschool_status = Text("Level 0: Preschool", font_size=20).to_edge(DL).set_color(YELLOW)
+        kindergarten_status = Text("Level 1: Elementary School", font_size=20).to_edge(DL).set_color(YELLOW)
+        self.play(Write(preschool_status), run_time=1)
         v1 = Group(self.video1)
         self.add(v1)
-        self.wait(440 / 30)
+        self.wait_until_frame(363)
+        self.play(ReplacementTransform(preschool_status, kindergarten_status), run_time=1)
 
         # hide axes for circle frames and trail frames
-        middle_school_status = Text("Level 2: Middle School", font_size=15).to_edge(UL).set_color(YELLOW)
+        middle_school_status = Text("Level 2: Middle School", font_size=20).to_edge(DL).set_color(YELLOW)
+        self.wait_until_frame(811)
         self.play(ReplacementTransform(kindergarten_status, middle_school_status), run_time=1)
-        self.wait(1)
 
-        self.wait(26)
-        high_school_status = Text("Level 3: High School", font_size=15).to_edge(UL).set_color(YELLOW)
+        self.wait_until_frame(1279)
+        high_school_status = Text("Level 3: High School", font_size=20).to_edge(DL).set_color(YELLOW)
         self.play(ReplacementTransform(middle_school_status, high_school_status), run_time=1)
 
         # SECTION 2: DIFFERENTIAL CALCULUS
@@ -216,8 +218,10 @@ class MyScene(ThreeDScene):
         # rising
         self.play(self.video1.animate.move_to(ORIGIN + RIGHT * 2),
                   run_time=1, rate_func=rush_from)
-        self.play(self.video1.animate.move_to(ORIGIN + LEFT * 2), run_time = 1.5, rate_func=there_and_back)
-        self.play(self.video1.animate.move_to(ORIGIN + LEFT * 2), run_time=1.5, rate_func=smooth)
+        self.play(self.video1.animate.move_to(ORIGIN + LEFT * 2).scale(2), run_time=0.75, rate_func=smooth)
+        self.play(self.video1.animate.move_to(ORIGIN + RIGHT *2 ), run_time=0.75, rate_func=smooth)
+        # self.play(self.video1.animate.move_to(ORIGIN + LEFT * 2), run_time = 1.5, rate_func=there_and_back)
+        self.play(self.video1.animate.move_to(ORIGIN + LEFT * 2).scale(0.5), run_time=1.5, rate_func=smooth)
 
         # apex
         self.play(self.video1.animate.move_to(ORIGIN + LEFT * 1.5 + UP * 8), run_time=1.5, rate_func=smooth)
@@ -237,7 +241,7 @@ class MyScene(ThreeDScene):
         self.play(self.video1.animate.rotate(self.total_angle), run_time=0.5, rate_func=lingering)
 
         self.play(self.video1.animate.scale(3), run_time=1.5)
-        self.wait_until_frame(2203)
+        self.wait_until_frame(2204)
 
         # SECTION 4: FOURIER SERIES
         # take a picture using a white rectangle
@@ -250,7 +254,7 @@ class MyScene(ThreeDScene):
         self.add(rect)
         self.play(FadeOut(rect), run_time=0.5)
         
-        university_status = Text("Level 4: 1st Year Uni", font_size=15).to_edge(UL).set_color(YELLOW)
+        university_status = Text("Level 4: 1st Year Uni", font_size=20).to_edge(DL).set_color(YELLOW)
         self.play(self.video1.animate.move_to(ORIGIN + RIGHT * 5.5 + UP * 3 + OUT).scale_to_fit_width(3),
                   ReplacementTransform(high_school_status, university_status), run_time=1.5)
         self.play(video_copy.animate.move_to(ORIGIN + UP * 1.3).scale(0.75), run_time=1.5)
@@ -282,7 +286,7 @@ class MyScene(ThreeDScene):
         num_fourier_terms = ValueTracker(0)
         current_plot = ax.plot(lambda x: f(x, 0), x_range=[min(x), max(x)], color=YELLOW)
         fourier_status = always_redraw(
-            lambda: Text(f"# Fourier Series terms: {int(num_fourier_terms.get_value())}", font_size=24, color=YELLOW).move_to(ORIGIN + DOWN * 3 + LEFT * 5)
+            lambda: Text(f"# Fourier Series terms: {int(num_fourier_terms.get_value())}", font_size=24, color=YELLOW).to_edge(UL)
         )
         self.play(Create(current_plot), Write(fourier_status))
         for i in range(1, 61):
@@ -385,7 +389,7 @@ class MyScene(ThreeDScene):
         com_dot.add_updater(com_updater)
         self.play(Write(com_dot))
         self.add(com_text)
-        for_fun_status = Text("Level 5: 2nd Year Uni?", font_size=15).to_edge(UL).set_color(YELLOW)
+        for_fun_status = Text("Level 5: 2nd Year Uni?", font_size=20).to_edge(DL).set_color(YELLOW)
         self.play(ReplacementTransform(university_status, for_fun_status), run_time=1)
 
         self.wait_until_frame(4200-60)
@@ -395,18 +399,18 @@ class MyScene(ThreeDScene):
         self.play(self.video1.animate.scale_to_fit_height(7.6))
 
 
-        # LAST SECTION: ELECTRIC FIELD VECTORS
+        # section 6: ELECTRIC FIELD VECTORS
         down_left = self.video1.get_corner(DL)
         min_x, min_y = down_left[0], down_left[1]
         top_right = self.video1.get_corner(UR)
         max_x, max_y = top_right[0], top_right[1]
         print(f"min_x= {min_x}\nmax_x={max_x}\nmin_y={min_y}\nmax_y={max_y}")
-        university_status_2 = Text("Level 6: 3rd Year Uni", font_size=15).to_edge(UL).set_color(YELLOW)
-        self.play(ReplacementTransform(for_fun_status, university_status_2), run_time=0.5)
+        university_status_2 = Text("Level 6: 3rd Year Uni", font_size=20).to_edge(DL).set_color(YELLOW)
+        self.play(FadeOut(for_fun_status), run_time=0.5)
 
         # adjust min_x and max_x because the video is 12.763466042154567 cropped in from the right and left
         # add dot at -6.5, 3.5
-        vector_data = json.load(open("e_fields.json"))
+        vector_data = json.load(open("e_fields_all.json"))
         def get_vector_field():
             # vector fields are precomputed, see efield-precompute.py
             frame_number = int(self.video1.status.videoObject.get(cv2.CAP_PROP_POS_FRAMES))
@@ -427,7 +431,13 @@ class MyScene(ThreeDScene):
             return field
         
         field = always_redraw(get_vector_field)
-        self.play(Create(field), run_time=0.2)
+        uni_2_text = always_redraw(lambda: university_status_2)
+        self.play(Create(field), Create(uni_2_text), run_time=0.2)
+        self.wait_until_frame(5434)
+        self.play(Uncreate(field), Uncreate(uni_2_text), run_time=1)
+
+        ###  section 7: Moving Charge Fields
         self.wait_until_frame(6572)
-        self.play(FadeOut(VGroup(field, self.video1, university_status_2)), run_time=3)
+        self.wait(3)
+        # self.play(FadeOut(Group(field, self.video1, university_status_2)), run_time=3)
         

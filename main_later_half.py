@@ -1,4 +1,4 @@
-
+# this file is just for testing animations that happen later, so I don't have to render the whole thing every time
 from manim import *
 from main_advanced import VideoMobject
 import json
