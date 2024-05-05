@@ -1,5 +1,6 @@
 """
-Main bulk of the video.
+Main bulk of the video. This file is extremely messy, but I didn't want to break it up into 
+smaller pieces because video editing is not easy and seeing everything linearly has its merits.
 """
 from manim import *
 import cv2
@@ -20,7 +21,8 @@ class VideoStatus:
 
 class VideoMobject(ImageMobject):
     '''
-    Video Manim Object
+    Custom Video Manim Object made by Manim Discord. I made my own modifications so it wouldn't speed up when the video
+    was animated.
     Parameters
     ----------
     filename
