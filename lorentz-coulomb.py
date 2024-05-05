@@ -1,6 +1,10 @@
+"""
+Create a 3D scene with the Electric field vector field of a moving point charge, using the centroid
+of the video as the moving charge. Uses finite difference approximations for velocity, acceleration, and then
+the Lienard-Wiechert derived E-field to calculate the field due to a point charge.
+"""
 from manim import *
 import json
-import cv2
 
 class MyScene(ThreeDScene):
 
@@ -11,7 +15,6 @@ class MyScene(ThreeDScene):
         right_crop_percent = 0.8723653395784543
         top_crop_percent = 0.0020833333333333333
         bottom_crop_percent = 0.9958333333333333
-        # add invisible rotating square
         min_x= -6.75555555555557                                                                                                                                                                  
         max_x=6.75555555555557
         min_y=-3.8
@@ -83,7 +86,6 @@ class MyScene(ThreeDScene):
         self.stop_ambient_camera_rotation("phi")
         self.stop_ambient_camera_rotation("theta")
 
-        ####
         pos_vel_acc = json.load(open("pos_vel_acc_z_sin.json", "r"))
         c_light = 4 # ah yes
         k = 8.9875517873681764e9
@@ -124,7 +126,7 @@ class MyScene(ThreeDScene):
             v_magnitude = np.linalg.norm(v)
             vector_term = (c_light**2 - v_magnitude**2) * u + np.cross(curly_r, np.cross(u, a))
             return constant_out_front * vector_term
-        ####
+
 
         def get_e_vector(pos):
             x, y, _ = pos
@@ -139,6 +141,4 @@ class MyScene(ThreeDScene):
 
         vec_field = always_redraw(get_vector_field)
         self.add(vec_field)
-        # self.wait(10, frozen_frame=False)
         self.wait((6700-5472)/30, frozen_frame=False)
-        # self.wait(10, frozen_frame=False)

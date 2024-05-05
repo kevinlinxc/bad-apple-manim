@@ -24,3 +24,9 @@ pipx install so-vits-svc-fork --python=3.10
 pipx inject so-vits-svc-fork torch torchaudio --pip-args="--upgrade" --index-url=https://download.pytorch.org/whl/cu121 # https://download.pytorch.org/whl/nightly/cu121
 svcg
 ```
+
+Extra notes:
+  - The hubert `crepe` mode made my GPU crash during training, dio worked for some reason
+  - Lowering the batch size may have helped with stability
+  - Don't install using pipx, just use pip - pipx makes it harder to change the source files in my opinion
+  - If you don't have a GPU, you could train on Colab, but I only trained 300 out of the 9999 epochs in a day so it would take forever

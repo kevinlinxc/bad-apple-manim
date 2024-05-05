@@ -1,3 +1,6 @@
+"""
+Main bulk of the video.
+"""
 from manim import *
 import cv2
 from dataclasses import dataclass
@@ -74,9 +77,7 @@ class MyScene(ThreeDScene):
         ax = Axes(
             x_range=[0, 960, 100],
             y_range=[0, 720, 100]
-        ).add_coordinates() # i don't use these but due to tech debt I still need it for the lines below
-        # self.play(Write(VGroup(ax, labels)))
-        # math_level_text = Text("Kindergarten", font_size=24).to_edge(DL).set_color(YELLOW)
+        ).add_coordinates() # i don't use these axes but due to tech debt I still need it for the lines below
         # start playing video
 
         self.video1 = VideoMobject(
@@ -399,13 +400,14 @@ class MyScene(ThreeDScene):
         self.play(self.video1.animate.scale_to_fit_height(7.6))
 
 
-        # section 6: ELECTRIC FIELD VECTORS
+        ### SECTION 6: ELECTRIC FIELD VECTORS
+        # use e field pre-calculated in efield-precompute.py
         down_left = self.video1.get_corner(DL)
         min_x, min_y = down_left[0], down_left[1]
         top_right = self.video1.get_corner(UR)
         max_x, max_y = top_right[0], top_right[1]
         print(f"min_x= {min_x}\nmax_x={max_x}\nmin_y={min_y}\nmax_y={max_y}")
-        
+
         university_status_2 = Text("Level 6: 3rd Year Uni", font_size=20).to_edge(DL).set_color(YELLOW)
         self.play(FadeOut(for_fun_status), run_time=0.5)
 
@@ -437,8 +439,7 @@ class MyScene(ThreeDScene):
         self.wait_until_frame(5434)
         self.play(Uncreate(field), Uncreate(uni_2_text), run_time=1)
 
-        ###  section 7: Moving Charge Fields
+        ###  SECTION 7: Moving Charge Fields - done in after effects by overlaying lourentz-coulomb.py
         self.wait_until_frame(6572)
         self.wait(3)
-        # self.play(FadeOut(Group(field, self.video1, university_status_2)), run_time=3)
         
