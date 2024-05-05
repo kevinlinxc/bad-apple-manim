@@ -18,7 +18,8 @@ This renders a preliminary video, to save time with processing for the greater v
 The other video is rendered from `main_advanced.py`, using `manim -pqh main_advanced.py MyScene`, this is the one with all the mathematical effects like the 
 differentiation, integration, fourier series, and vector fields.
 
-Some other files, in the order that they were used:
+Some other stuff in the order that they were used:
+- I used https://github.com/xnx/circle-packing to generate the circle packing for level 2.
 - `quote.py`: used to render the quote at the beginning of the video
 -`center_of_masses.ipynb`: used to pre-compute the center of masses of every frame to use in level 5
 -`fourier_series.ipynb`: used to test the Fourier Series using the coordinate system of the video, for level 4
