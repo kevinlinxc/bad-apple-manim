@@ -405,6 +405,7 @@ class MyScene(ThreeDScene):
         top_right = self.video1.get_corner(UR)
         max_x, max_y = top_right[0], top_right[1]
         print(f"min_x= {min_x}\nmax_x={max_x}\nmin_y={min_y}\nmax_y={max_y}")
+        
         university_status_2 = Text("Level 6: 3rd Year Uni", font_size=20).to_edge(DL).set_color(YELLOW)
         self.play(FadeOut(for_fun_status), run_time=0.5)
 

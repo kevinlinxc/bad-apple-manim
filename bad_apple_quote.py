@@ -12,13 +12,13 @@ class MyScene(Scene):
         line2.move_to(UP*0.7)
 
         # Add lines to scene
-        self.play(Write(line1))
+        self.add(line1)
         self.wait(1)
         self.play(Write(line2))
         self.wait(1)
 
         # Create placeholder name
-        name = Text("- AI Grant Sanderson", font="Arial", color=YELLOW).scale(0.5)
+        name = Text("- A.I. 3Blue1Brown", font="Arial", color=YELLOW).scale(0.5)
         name.next_to(line2, DOWN)
 
         # Add name to scene
