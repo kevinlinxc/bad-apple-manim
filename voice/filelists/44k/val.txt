@@ -1,2 +1,2 @@
-dataset/44k/3b1b/1_Solving Wordle using information theory_(Vocals)_168.300_178.300.wav
-dataset/44k/3b1b/1_Solving Wordle using information theory_(Vocals)_1370.200_1380.200.wav
+dataset/44k/3b1b/1_Solving Wordle using information theory_(Vocals)_228.300_238.300.wav
+dataset/44k/3b1b/1_Solving Wordle using information theory_(Vocals)_1427.400_1437.400.wav
