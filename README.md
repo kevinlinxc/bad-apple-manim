@@ -2,6 +2,8 @@
 
 Recreating Bad Apple in the style of a 3Blue1Brown video.
 
+Final video: https://www.youtube.com/watch?v=t0N0dZTsn-w
+
 ## Making the video:
 `video_to_svg.ipynb` does the following:
 - Uses OpenCV to convert the original Bad Apple video into a series of PNG files.
