@@ -23,8 +23,8 @@ differentiation, integration, fourier series, and vector fields.
 Some other stuff in the order that they were used:
 - I used https://github.com/xnx/circle-packing to generate the circle packing for level 2.
 - `quote.py`: used to render the quote at the beginning of the video
--`center_of_masses.ipynb`: used to pre-compute the center of masses of every frame to use in level 5
--`fourier_series.ipynb`: used to test the Fourier Series using the coordinate system of the video, for level 4
+- `center_of_masses.ipynb`: used to pre-compute the center of masses of every frame to use in level 5
+- `fourier_series.ipynb`: used to test the Fourier Series using the coordinate system of the video, for level 4
 - `efield-precompute.py`: used to precompute the electric field vectors for the main video in level 6.
 - `lorentz-coulomb.ipynb` and `lorentz-coulomb.py`: used to render the last section of the video, level 7. This particular section made me use finite difference methods and the Lienard-Wiechart potentials from Griffith's Electrodynamics book, which was simultaneously really fun and really hard.
 - I tried doing a section with optical flow (`optical_flow_test.py`), but the algorithms didn't work well with the two-colored videos.
